@@ -27,10 +27,10 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.url === "/") {
-      res.end(JSON.stringify({
-        message: "Node.js + PostgreSQL + Redis",
-      }));
-    } else if (req.url === "/db-test") {
+  res.end(JSON.stringify({
+    message: "CI/CD working successfully!",
+  }));
+} else if (req.url === "/db-test") {
       const result = await pool.query("SELECT NOW() AS time");
       res.end(JSON.stringify({
         database: "connected",
