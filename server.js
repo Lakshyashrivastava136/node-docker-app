@@ -3,20 +3,32 @@ const http = require("http");
 const { Pool } = require("pg");
 const { createClient } = require("redis");
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME || "appdb",
-  user: process.env.DB_USER || "appuser",
-  password: process.env.DB_PASSWORD || "localpass123",
-});
 
-const redis = createClient({
-  socket: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: Number(process.env.REDIS_PORT || 6379),
-  },
-});
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      }
+    : {
+        host: process.env.DB_HOST || "localhost",
+        port: Number(process.env.DB_PORT || 5432),
+        database: process.env.DB_NAME || "appdb",
+        user: process.env.DB_USER || "appuser",
+        password: process.env.DB_PASSWORD || "localpass123",
+      }
+);
+
+
+const redis = process.env.REDIS_URL
+  ? createClient({ url: process.env.REDIS_URL })
+  : createClient({
+      socket: {
+        host: process.env.REDIS_HOST || "localhost",
+        port: Number(process.env.REDIS_PORT || 6379),
+      },
+    });
+
 
 redis.on("error", (err) => {
   console.error("Redis error:", err.message);
@@ -57,7 +69,7 @@ const server = http.createServer(async (req, res) => {
 async function startServer() {
   await redis.connect();
 
-  server.listen(3000, "0.0.0.0", () => {
+  server.listen(process.env.PORT || 3000, "0.0.0.0", () => {
     console.log("Server running on port 3000");
   });
 }
